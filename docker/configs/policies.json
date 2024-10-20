@@ -1,0 +1,15 @@
+{
+	"policies": {
+		"Permissions": {
+			"Microphone": {
+				"BlockNewRequests": true
+			},
+			"Camera": {
+				"BlockNewRequests": true
+			}
+		},
+		"Extensions": {
+			"Install": [ "//etc/firefox/extension.xpi" ]
+		}
+	}
+}

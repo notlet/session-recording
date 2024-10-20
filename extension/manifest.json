@@ -1,0 +1,12 @@
+{
+	"manifest_version": 2,
+	"name": "AutoMeetings",
+	"version": "1",
+	"description": "Automates joining meetings on Zoom (and soon on BBB). (for Session Recording workflow)",
+	"icons": { "48": "icon.png" },
+	"content_scripts": [
+	  { "matches": ["https://*.zoom.us/j/*"], "js": ["zoom/redirect.js"] },
+	  { "matches": ["https://*.zoom.us/wc/*/join*"], "js": ["zoom/join.js"] }
+	]
+  }
+  

@@ -17,7 +17,9 @@ RUN \
   echo "**** add icon ****" && \
   curl -o \
     /kclient/public/icon.png \
-    https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/firefox-logo.png && \
+    https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/firefox-logo.png
+
+RUN \
   echo "**** install packages ****" && \
   apt-key adv \
     --keyserver hkp://keyserver.ubuntu.com:80 \
@@ -34,13 +36,18 @@ RUN \
     firefox \
     ^firefox-locale \
     ffmpeg \
-    obs-studio && \
+    obs-studio 
+
+RUN \
   echo "**** cleanup ****" && \
   rm -rf \
     /tmp/*
 
-# add default configs
+# configs for firefox
 COPY /configs/firefox.js /usr/lib/firefox/browser/defaults/preferences/firefox.js
+COPY /configs/policies.json /etc/firefox/policies/policies.json
+
+# configs for obs-studio
 COPY --chown=1000:1000 /configs/obs-studio /home/kasm-user/.config/obs-studio
 
 # add local files

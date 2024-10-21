@@ -9,11 +9,11 @@ import auth from './auth.ts';
 google.options({ auth });
 
 export default class Stream {
-	youtubeId: string | null = null;
-	kasm: { id: string | null, user: string | null } = { id: null, user: null };
-	link: string | null = null;
-	#title: string | null = null;
-	#date: Date | null = null;
+	youtubeId: string | undefined = undefined;
+	kasm: { id: string | undefined, user: string | undefined } = { id: undefined, user: undefined };
+	link: string | undefined = undefined;
+	#title: string | undefined = undefined;
+	#date: Date | undefined = undefined;
 
 	constructor(settings: { title: string, date: Date, link: string }) {
 		this.#title = settings.title;
@@ -41,7 +41,7 @@ export default class Stream {
 			user_id: this.kasm.user
 		})).status !== 200) return false;
 
-		this.kasm = { id: null, user: null };
+		this.kasm = { id: undefined, user: undefined };
 		return true;
 	}
 
@@ -51,8 +51,8 @@ export default class Stream {
 			"broadcastStatus": "active",
 			"broadcastType": "all"
 		}));
-
-		if (active.data.items.length < 1) return null;
+		
+		if (!active.data.items || !active.data.items[0]?.id) return null;
 
 		return this.youtubeId = active.data.items[0].id;
 	}

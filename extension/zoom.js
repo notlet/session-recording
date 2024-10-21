@@ -19,7 +19,6 @@ const addTimer = async(element, seconds) => {
 		element.innerText = `${text} (${t})`;
 		await sleep(1000);
 	}
-	await sleep(100); // additional 100ms timeout to avoid bugs
 };
 
 if (window.location.href.includes('zoom.us/j/')) {
@@ -29,20 +28,26 @@ if (window.location.href.includes('zoom.us/j/')) {
 const joinAudio = async b => {
 	await sleep(2000);
 	b.click();
+
+	 // Click on the screen to discard any popups
 	await sleep(5000);
-	document.querySelector('div#sharee-container')?.click();
+	setInterval(() => document.querySelector('div#sharee-container')?.click(), 5000);
 }
 
 (async () => {
 	console.log('AutoMeetings active, waiting for elements to load...')
-	waitForElm('button#preview-audio-control-button[aria-label="Join Audio"]').then(joinAudio);
-	waitForElm('button.join-audio-container__btn[aria-label="join audio"]').then(joinAudio);
-	waitForElm('button.join-audio-by-voip__join-btn').then((b) => b.click());
 
+	// Wait for elements to appear and then click them
+	waitForElm('button#preview-audio-control-button[aria-label="Join Audio"]').then(joinAudio); // join audio in name input screen or waiting room
+	waitForElm('button.join-audio-container__btn[aria-label="join audio"]').then(joinAudio); // join audio in meeting
+	waitForElm('button.join-audio-by-voip__join-btn').then((b) => b.click()); // confirm join audio in meeting
+	waitForElm('div.disclaimer-content:has(div[title="This meeting is being recorded"]) button.ok-button').then((b) => b.click()); // discard recording disclaimer
+
+	// Wait for name input and set it
 	waitForElm('input#input-for-name').then(async (nameInput) => {
 		console.log('Found name input.');
 		nameInput.value = 'Session Recorder';
-		nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+		nameInput.dispatchEvent(new Event('input', { bubbles: true })); // trigger input update
 		console.log('Set name.');
 
 		const joinBtn = document.querySelector('button.preview-join-button');

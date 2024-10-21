@@ -29,7 +29,9 @@ if (window.location.href.includes('zoom.us/j/')) {
 (async () => {
 	console.log('AutoMeetings active, waiting for elements to load...')
 	waitForElm('button#preview-audio-control-button[aria-label="Join Audio"]').then(b => setTimeout(() => b.click(), 2000));
+	waitForElm('button.join-audio-container__btn[aria-label="join audio"]').then(b => setTimeout(() => b.click(), 2000));
 	waitForElm('button.join-audio-by-voip__join-btn').then((b) => b.click());
+	
 	waitForElm('input#input-for-name').then(async (nameInput) => {
 		console.log('Found name input.');
 		nameInput.value = 'Session Recorder';

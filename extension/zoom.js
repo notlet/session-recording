@@ -26,12 +26,19 @@ if (window.location.href.includes('zoom.us/j/')) {
 	window.location.href = window.location.href.replace('/j/', '/wc/join/');
 }
 
+const joinAudio = async b => {
+	await sleep(2000);
+	b.click();
+	await sleep(5000);
+	document.querySelector('div#sharee-container')?.click();
+}
+
 (async () => {
 	console.log('AutoMeetings active, waiting for elements to load...')
-	waitForElm('button#preview-audio-control-button[aria-label="Join Audio"]').then(b => setTimeout(() => b.click(), 2000));
-	waitForElm('button.join-audio-container__btn[aria-label="join audio"]').then(b => setTimeout(() => b.click(), 2000));
+	waitForElm('button#preview-audio-control-button[aria-label="Join Audio"]').then(joinAudio);
+	waitForElm('button.join-audio-container__btn[aria-label="join audio"]').then(joinAudio);
 	waitForElm('button.join-audio-by-voip__join-btn').then((b) => b.click());
-	
+
 	waitForElm('input#input-for-name').then(async (nameInput) => {
 		console.log('Found name input.');
 		nameInput.value = 'Session Recorder';

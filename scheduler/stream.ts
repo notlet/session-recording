@@ -1,7 +1,8 @@
 import axios from 'npm:axios'
+import { nanoid } from 'npm:nanoid';
 import { toMerged } from "jsr:@es-toolkit/es-toolkit";
 import { google } from 'googleapis';
-
+import log4js from 'npm:log4js';
 import Config from "./config.ts";
 const config = new Config().get();
 
@@ -9,16 +10,23 @@ import auth from './auth.ts';
 google.options({ auth });
 
 export default class Stream {
+	id: string;
 	youtubeId: string | undefined = undefined;
 	kasm: { id: string | undefined, user: string | undefined } = { id: undefined, user: undefined };
 	link: string | undefined = undefined;
-	#title: string | undefined = undefined;
-	#date: Date | undefined = undefined;
+	#logger: log4js.Logger;
+	#title: string;
+	#date: Date;
 
-	constructor(settings: { title: string, date: Date, link: string }) {
+	constructor(settings: { title: string, date: Date, link: string, logLevel?: string }) {
+		this.id = nanoid(10);
 		this.#title = settings.title;
 		this.#date = settings.date;
 		this.link = settings.link;
+		this.#logger = log4js.getLogger(`stream-${this.id}`);
+		this.#logger.level = settings.logLevel || 'INFO';
+
+		this.#logger.info(`Stream ${this.id} created with title: ${this.#title}, link: ${this.link}`);
 	}
 
 	#kasmRequest = (endpoint: string, data: object) => axios.post(`${config.kasm.url}/api/public/${endpoint}`, toMerged(data, {
@@ -32,15 +40,18 @@ export default class Stream {
 			enable_sharing: true,
 			environment: { INVITE_LINK: this.link }
 		});
+
+		this.#logger.info(`Created Kasm ${kasmData.data.kasm_id}`);
 		return this.kasm = { id: kasmData.data.kasm_id, user: kasmData.data.user_id };
 	}
 
 	async endKasm() {
-		if ((await this.#kasmRequest('request_kasm', {
+		if ((await this.#kasmRequest('destroy_kasm', {
 			kasm_id: this.kasm.id,
 			user_id: this.kasm.user
 		})).status !== 200) return false;
 
+		this.#logger.info(`Destroyed Kasm ${this.kasm.id}`);
 		this.kasm = { id: undefined, user: undefined };
 		return true;
 	}
@@ -53,7 +64,7 @@ export default class Stream {
 		}));
 		
 		if (!active.data.items || !active.data.items[0]?.id) return null;
-
+		this.#logger.debug(`Found active youtube stream ${active.data.items[0].id}`);
 		return this.youtubeId = active.data.items[0].id;
 	}
 
@@ -74,7 +85,19 @@ export default class Stream {
 			},
 		});
 
+		this.#logger.info(`Updated youtube stream ${this.youtubeId} with title "${this.#title}"`);
 		return true;
+	}
+
+	async tryUpdateStreamData() {
+		let tries = 0;
+		while (!(await this.updateStreamData()) && tries < 5) {
+			tries++;
+			this.#logger.debug(`Failed to update stream data (attempt ${tries}), retrying in 10 seconds...`);
+			await new Promise(resolve => setTimeout(resolve, 10000));
+		}
+
+		return tries < 5;
 	}
 
 	async endStream() {
@@ -85,6 +108,14 @@ export default class Stream {
 			id: this.youtubeId,
 			broadcastStatus: 'complete',
 		})
+
+		this.#logger.info(`Ended youtube stream ${this.youtubeId}`);
+		return true;
+	}
+
+	async start() {
+		await this.startKasm();
+		await this.tryUpdateStreamData();
 		return true;
 	}
 

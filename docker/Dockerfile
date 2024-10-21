@@ -34,7 +34,8 @@ RUN \
   apt-get update && \
   apt-get install -y --no-install-recommends \
     firefox \
-    ^firefox-locale \
+    firefox-locale-en \
+    firefox-locale-uk \
     ffmpeg \
     obs-studio 
 

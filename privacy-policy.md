@@ -1,0 +1,1 @@
+I do not sell your data. I am not a major megacorporation with a giant ad network, I don't need your data, but the said megacorporation requires me to add a privacy policy for whatever reason. That's it.

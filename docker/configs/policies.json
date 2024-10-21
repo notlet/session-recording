@@ -6,6 +6,9 @@
 			},
 			"Camera": {
 				"BlockNewRequests": true
+			},
+			"Autoplay": {
+				"Default": "allow-audio-video"
 			}
 		},
 		"Extensions": {

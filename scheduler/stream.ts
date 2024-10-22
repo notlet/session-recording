@@ -15,6 +15,7 @@ export default class Stream {
 	kasm: { id: string | undefined, user: string | undefined } = { id: undefined, user: undefined };
 	link: string | undefined = undefined;
 	#logger: log4js.Logger;
+	#keepAlive: number | undefined = undefined;
 	#title: string;
 	#date: Date;
 
@@ -53,6 +54,27 @@ export default class Stream {
 
 		this.#logger.info(`Destroyed Kasm ${this.kasm.id}`);
 		this.kasm = { id: undefined, user: undefined };
+		return true;
+	}
+
+	startKeepAlive() {
+		if (this.#keepAlive || !this.kasm.id) return false;
+
+		this.#keepAlive = setInterval(async () => {
+			await this.#kasmRequest('keepalive', { kasm_id: this.kasm.id });
+			this.#logger.debug(`Sent keepalive to Kasm ${this.kasm.id}`);
+		}, 5 * 60 * 1000); // 5 minutes	
+
+		this.#logger.info(`Started keepalive for Kasm ${this.kasm.id}`);
+		return true;
+	}
+
+	stopKeepAlive() {
+		if (!this.#keepAlive) return false;
+		clearInterval(this.#keepAlive);
+		this.#keepAlive = undefined;
+
+		this.#logger.info(`Stopped keepalive for Kasm ${this.kasm.id}`);
 		return true;
 	}
 
@@ -115,12 +137,14 @@ export default class Stream {
 
 	async start() {
 		await this.startKasm();
+		this.startKeepAlive();
 		await this.tryUpdateStreamData();
 		return true;
 	}
 
 	async end() {
 		await this.endKasm();
+		this.stopKeepAlive();
 		await this.endStream();
 		return true;
 	}
